@@ -1,4 +1,9 @@
 https://medium.com/@nathaliafriederichs/setting-up-a-postgresql-environment-in-docker-a-step-by-step-guide-55cbcb1061ba
 
-docker run --name my-postgres -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 postgres
-docker run --name test-pgadmin -p 15432:80 -e "PGADMIN_DEFAULT_EMAIL=email@test.com" -e "PGADMIN_DEFAULT_PASSWORD=psw123" -d dpage/pgadmin4
+// Comando para executar o postgres sql shell
+docker exec -it my-postgres psql -U postgres
+
+// Comandos para rodar os containers e criar a rede entre eles
+docker network create pgnetwork
+docker run --name my-postgres --network pgnetwork -e POSTGRES_PASSWORD=postgres -d -p 5432:5432 postgres
+docker run --name test-pgadmin --network pgnetwork -e PGADMIN_DEFAULT_EMAIL=admin@admin.com -e PGADMIN_DEFAULT_PASSWORD=admin -p 15432:80 -d dpage/pgadmin4
