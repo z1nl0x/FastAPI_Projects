@@ -2,15 +2,19 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from .schemas import BookCreateModel, BookUpdateModel
 from sqlmodel import select, desc
 from .models import Book
-from datetime import datetime
+from datetime import datetime, date
 
 class BookService:
-    async def get_all_books(self, session:AsyncSession):
+    async def get_all_books(self, session: AsyncSession):
         statement = select(Book).order_by(desc(Book.created_at))
-        
         result = await session.exec(statement)
+        books = result.all()
         
-        return result.all()
+        # Converte todas as datas para string
+        for book in books:
+            book.published_date = book.published_date.isoformat()
+        
+        return books
     
     async def get_book(self, book_uid:str, session:AsyncSession):
         statement = select(Book).where(Book.uid == book_uid)
@@ -24,14 +28,14 @@ class BookService:
     async def create_book(self, book_data: BookCreateModel, session:AsyncSession):
         book_data_dict = book_data.model_dump()
         
-        new_book = Book(
-            **book_data_dict
-        )
-        
-        #new_book.published_date = datetime.strptime(book_data_dict['published_date'], "%Y-%m-%d")
-        
+        new_book = Book(**book_data_dict)
         session.add(new_book)
         await session.commit()
+        await session.refresh(new_book)
+        
+        # Converte o date de volta para string (para o schema de resposta)
+        new_book.published_date = new_book.published_date.isoformat()  # Formato "YYYY-MM-DD"
+        
         return new_book
     
     async def update_book(self, book_uid:str, update_data:BookUpdateModel, session:AsyncSession):
