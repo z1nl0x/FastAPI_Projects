@@ -23,6 +23,8 @@ class BookService:
         
         book = result.first()
         
+        book.published_date = book.published_date.isoformat()
+        
         return book if book is not None else None
     
     async def create_book(self, book_data: BookCreateModel, session:AsyncSession):
